@@ -155,9 +155,7 @@
     gap:8px;
     margin-top:6px;
   }
-  .chip{
-    position:relative;
-  }
+  .chip{position:relative;}
   .chip input{
     position:absolute;
     opacity:0;
@@ -182,15 +180,8 @@
     border-color:var(--azul);
     color:#fff;
   }
-  .radio-grupo{
-    display:flex;
-    gap:10px;
-    margin-top:6px;
-  }
-  .radio-tarjeta{
-    flex:1;
-    position:relative;
-  }
+  .radio-grupo{display:flex;gap:10px;margin-top:6px;}
+  .radio-tarjeta{flex:1;position:relative;}
   .radio-tarjeta input{
     position:absolute;
     opacity:0;
@@ -269,7 +260,7 @@
     display:none;
     border:1.5px solid var(--borde);
   }
-  button[type="submit"]{
+  button[type="submit"], .btn-primario{
     width:100%;
     margin-top:20px;
     padding:15px;
@@ -284,13 +275,26 @@
     box-shadow:var(--sombra);
     transition:transform .1s, background .15s;
   }
-  button[type="submit"]:hover{background:var(--ambar-oscuro);}
-  button[type="submit"]:active{transform:scale(0.99);}
-  button[type="submit"]:disabled{
+  button[type="submit"]:hover, .btn-primario:hover{background:var(--ambar-oscuro);}
+  button[type="submit"]:active, .btn-primario:active{transform:scale(0.99);}
+  button[type="submit"]:disabled, .btn-primario:disabled{
     background:#c9ccd1;
     color:#6b7280;
     cursor:not-allowed;
   }
+  .btn-secundario{
+    width:100%;
+    margin-top:10px;
+    padding:13px;
+    background:#fff;
+    border:1.5px solid var(--borde);
+    color:var(--texto);
+    font-weight:600;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:0.92rem;
+  }
+  .btn-secundario:hover{background:#f3f5f7;}
   .mensaje{
     margin-top:14px;
     padding:12px 14px;
@@ -309,6 +313,61 @@
     margin-top:4px;
   }
   .oculto{display:none !important;}
+
+  /* ---- Confirmación / Verificación ---- */
+  #panelConfirmacion .resumen-linea{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 0;
+    border-bottom:1px solid var(--borde);
+    font-size:0.9rem;
+  }
+  #panelConfirmacion .resumen-linea:last-child{border-bottom:none;}
+  #panelConfirmacion .resumen-linea span:first-child{color:var(--texto-suave);}
+  #panelConfirmacion .resumen-linea span:last-child{font-weight:600;text-align:right;max-width:60%;}
+  #panelConfirmacion .resumen-total-final{
+    margin-top:14px;
+    padding:14px;
+    background:#eef6ee;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    font-weight:700;
+    color:var(--verde);
+    font-size:1.05rem;
+  }
+  .badge-verificado{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.78rem;
+    font-weight:700;
+    color:var(--verde);
+    background:#eaf7ec;
+    padding:5px 10px;
+    border-radius:20px;
+    margin-top:10px;
+  }
+  .badge-alerta{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.78rem;
+    font-weight:700;
+    color:var(--rojo);
+    background:#fdecea;
+    padding:5px 10px;
+    border-radius:20px;
+    margin-top:10px;
+  }
+  #panelRecibo{
+    margin-top:16px;
+    padding:16px;
+    border-radius:10px;
+    border:1.5px solid var(--borde);
+    background:#fbfcfd;
+  }
 </style>
 </head>
 <body>
@@ -319,6 +378,7 @@
 </header>
 
 <div class="contenedor">
+
   <form id="formGastos" class="tarjeta" autocomplete="off">
 
     <span class="paso-etiqueta">Datos generales</span>
@@ -357,10 +417,32 @@
       <small class="ayuda">Puedes tomar la foto directamente con la cámara del celular.</small>
       <img id="previewFoto" class="preview-foto" alt="Vista previa">
 
-      <button type="submit" id="btnEnviar">Registrar gasto</button>
-      <div id="mensaje" class="mensaje"></div>
+      <button type="submit" id="btnRevisar">Revisar antes de enviar</button>
     </div>
   </form>
+
+  <!-- Panel de confirmación: se muestra ANTES de enviar, para que el usuario verifique los datos -->
+  <div id="panelConfirmacion" class="tarjeta oculto">
+    <span class="paso-etiqueta">Verificación</span>
+    <h2 class="titulo-seccion">Revisa que todo esté correcto</h2>
+    <div id="resumenLineas"></div>
+    <div class="resumen-total-final">
+      <span>Total a registrar</span>
+      <span id="totalConfirmacion">S/ 0.00</span>
+    </div>
+    <button type="button" class="btn-primario" id="btnConfirmarEnvio">✅ Confirmar y enviar</button>
+    <button type="button" class="btn-secundario" id="btnEditar">✏️ Editar datos</button>
+    <div id="mensaje" class="mensaje"></div>
+  </div>
+
+  <!-- Recibo: se muestra DESPUÉS de que el servidor confirma qué guardó realmente -->
+  <div id="panelRecibo" class="tarjeta oculto">
+    <span class="paso-etiqueta">Comprobante</span>
+    <h2 class="titulo-seccion">Esto quedó guardado en la hoja</h2>
+    <div id="reciboContenido"></div>
+    <button type="button" class="btn-secundario" id="btnNuevoGasto">Registrar otro gasto</button>
+  </div>
+
 </div>
 
 <script>
@@ -372,11 +454,17 @@ const camposDinamicos = document.getElementById("camposDinamicos");
 const bloqueComunes = document.getElementById("bloqueComunes");
 const form = document.getElementById("formGastos");
 const mensaje = document.getElementById("mensaje");
-const btnEnviar = document.getElementById("btnEnviar");
 const inputFoto = document.getElementById("foto");
 const previewFoto = document.getElementById("previewFoto");
 
+const panelConfirmacion = document.getElementById("panelConfirmacion");
+const panelRecibo = document.getElementById("panelRecibo");
+const btnConfirmarEnvio = document.getElementById("btnConfirmarEnvio");
+const btnEditar = document.getElementById("btnEditar");
+const btnNuevoGasto = document.getElementById("btnNuevoGasto");
+
 let contadorMateriales = 0;
+let payloadPendiente = null; // guarda lo que se va a enviar hasta que el usuario confirme
 
 /* ========= PLANTILLAS POR CATEGORÍA ========= */
 const plantillas = {
@@ -659,7 +747,7 @@ function comprimirImagen(archivo, maxDimension, calidad) {
   });
 }
 
-/* ========= ARMADO DEL PAYLOAD Y ENVÍO ========= */
+/* ========= CONSTRUCCIÓN DE DETALLE Y TOTAL ESPERADO ========= */
 function construirDetalle(cat) {
   switch (cat) {
     case "Alimentación": {
@@ -718,11 +806,63 @@ function construirDetalle(cat) {
   }
 }
 
+// Calcula, en el propio navegador, el total que el usuario espera registrar.
+// Este número se envía al servidor y el servidor lo compara con lo que
+// realmente calculó y guardó, para poder avisar si algo no coincide.
+function calcularTotalEsperado(cat, d) {
+  switch (cat) {
+    case "Alimentación": return Number(d.monto) || 0;
+    case "Hospedaje": return (Number(d.habitaciones) || 0) * (Number(d.precioHabitacion) || 0);
+    case "Materiales": return d.items.reduce((acc, it) => acc + (Number(it.cantidad) || 0) * (Number(it.precio) || 0), 0);
+    case "Pasajes": return (Number(d.cantidadPasajes) || 0) * (Number(d.precioUnitario) || 0);
+    case "Imprevistos": return Number(d.monto) || 0;
+    case "Otros": return Number(d.monto) || 0;
+    default: return 0;
+  }
+}
+
+// Texto legible de cada línea, para el panel de confirmación y el recibo.
+function construirLineasResumen(cat, d, observacion, hayFoto) {
+  const lineas = [];
+  lineas.push(["Categoría", cat]);
+  switch (cat) {
+    case "Alimentación":
+      lineas.push(["Consumos", d.comidas.join(", ")]);
+      lineas.push(["Monto", "S/ " + Number(d.monto).toFixed(2)]);
+      break;
+    case "Hospedaje":
+      lineas.push(["Duración", d.tipoFecha === "rango" ? (d.fechaInicio + " a " + d.fechaFin) : d.fechaInicio]);
+      lineas.push(["Habitaciones", d.habitaciones]);
+      lineas.push(["Precio por habitación", "S/ " + Number(d.precioHabitacion).toFixed(2)]);
+      break;
+    case "Materiales":
+      d.items.forEach((it, i) => lineas.push(["Material " + (i + 1), `${it.nombre} — ${it.cantidad} x S/ ${Number(it.precio).toFixed(2)}`]));
+      break;
+    case "Pasajes":
+      lineas.push(["Ruta", d.origen + " → " + d.destino]);
+      lineas.push(["Vehículo", d.tipoVehiculo]);
+      lineas.push(["Pasajes", d.cantidadPasajes + " x S/ " + Number(d.precioUnitario).toFixed(2)]);
+      break;
+    case "Imprevistos":
+      lineas.push(["Descripción", d.descripcion]);
+      lineas.push(["Monto", "S/ " + Number(d.monto).toFixed(2)]);
+      break;
+    case "Otros":
+      lineas.push(["Detalle", d.descripcion]);
+      lineas.push(["Monto", "S/ " + Number(d.monto).toFixed(2)]);
+      break;
+  }
+  if (observacion) lineas.push(["Observación", observacion]);
+  lineas.push(["Foto adjunta", hayFoto ? "Sí" : "No"]);
+  return lineas;
+}
+
 function mostrarMensaje(texto, tipo) {
   mensaje.textContent = texto;
   mensaje.className = "mensaje " + tipo;
 }
 
+/* ========= PASO 1: EL USUARIO PIDE REVISAR (antes de enviar nada) ========= */
 form.addEventListener("submit", function (e) {
   e.preventDefault();
   const proyecto = document.getElementById("proyecto").value;
@@ -741,11 +881,15 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
-  const payload = {
+  const observacion = document.getElementById("observacion").value;
+  const totalEsperado = calcularTotalEsperado(categoria, detalle);
+
+  payloadPendiente = {
     proyecto,
     categoria,
     detalle,
-    observacion: document.getElementById("observacion").value,
+    observacion,
+    totalEsperado,
     foto: fotoComprimida ? {
       base64: fotoComprimida.base64,
       nombre: fotoComprimida.nombre,
@@ -753,29 +897,99 @@ form.addEventListener("submit", function (e) {
     } : null
   };
 
-  btnEnviar.disabled = true;
-  mostrarMensaje("Enviando registro...", "cargando");
+  // Pinta el resumen para que el usuario verifique los datos antes de enviarlos
+  const lineas = construirLineasResumen(categoria, detalle, observacion, !!fotoComprimida);
+  document.getElementById("resumenLineas").innerHTML = lineas.map(([etq, val]) =>
+    `<div class="resumen-linea"><span>${etq}</span><span>${val}</span></div>`
+  ).join("");
+  document.getElementById("totalConfirmacion").textContent = "S/ " + totalEsperado.toFixed(2);
+
+  document.querySelector('label[for="proyecto"]').parentElement; // no-op, mantiene el form intacto
+  form.classList.add("oculto");
+  panelConfirmacion.classList.remove("oculto");
+  mensaje.className = "mensaje";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* Botón "Editar": vuelve al formulario sin perder lo ya escrito */
+btnEditar.addEventListener("click", function () {
+  panelConfirmacion.classList.add("oculto");
+  form.classList.remove("oculto");
+});
+
+/* ========= PASO 2: EL USUARIO CONFIRMA -> AHORA SÍ SE ENVÍA ========= */
+btnConfirmarEnvio.addEventListener("click", function () {
+  if (!payloadPendiente) return;
+
+  btnConfirmarEnvio.disabled = true;
+  btnEditar.disabled = true;
+  mostrarMensaje("Enviando y verificando registro...", "cargando");
 
   fetch(URL_APPS_SCRIPT, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payloadPendiente)
   })
     .then(res => res.json())
-    .then(data => {
-      if (data.resultado === "OK") {
-        mostrarMensaje("✅ Gasto registrado correctamente.", "ok");
-        form.reset();
-        camposDinamicos.innerHTML = "";
-        bloqueComunes.classList.add("oculto");
-        previewFoto.style.display = "none";
-        fotoComprimida = null;
-      } else {
-        mostrarMensaje("Error al registrar: " + (data.mensaje || "desconocido"), "error");
-      }
-    })
+    .then(data => mostrarResultado(data))
     .catch(err => mostrarMensaje("Error de conexión: " + err.message, "error"))
-    .finally(() => { btnEnviar.disabled = false; });
+    .finally(() => {
+      btnConfirmarEnvio.disabled = false;
+      btnEditar.disabled = false;
+    });
+});
+
+/* ========= PASO 3: MOSTRAR EL RECIBO CON LO QUE EL SERVIDOR CONFIRMA HABER GUARDADO ========= */
+function mostrarResultado(data) {
+  if (data.resultado !== "OK") {
+    mostrarMensaje("❌ No se pudo registrar: " + (data.mensaje || "error desconocido"), "error");
+    return;
+  }
+
+  const filas = data.filasGuardadas || [];
+  const totalGuardado = Number(data.totalGuardado) || 0;
+  const totalEsperado = Number(data.totalEsperado) || 0;
+  const coincide = data.coincide;
+
+  let html = `<div class="resumen-linea"><span>Proyecto</span><span>${payloadPendiente.proyecto}</span></div>`;
+  html += `<div class="resumen-linea"><span>Categoría</span><span>${payloadPendiente.categoria}</span></div>`;
+  filas.forEach(f => {
+    html += `<div class="resumen-linea"><span>Fila #${f.fila} guardada</span><span>${f.detalle} — S/ ${Number(f.monto).toFixed(2)}</span></div>`;
+  });
+  html += `<div class="resumen-total-final"><span>Total guardado</span><span>S/ ${totalGuardado.toFixed(2)}</span></div>`;
+
+  if (data.fotoUrl) {
+    html += `<div class="resumen-linea"><span>Foto</span><span><a href="${data.fotoUrl}" target="_blank" rel="noopener">Ver en Drive</a></span></div>`;
+  } else if (payloadPendiente.foto) {
+    // Se envió una foto pero el servidor no devolvió una URL: algo falló al guardarla.
+    html += `<div class="resumen-linea"><span>Foto</span><span style="color:var(--rojo);">No se pudo guardar${data.errorFoto ? ": " + data.errorFoto : ""}</span></div>`;
+  }
+
+  if (coincide) {
+    html += `<div class="badge-verificado">✔ Verificado: el monto guardado coincide con lo enviado (S/ ${totalEsperado.toFixed(2)})</div>`;
+  } else {
+    html += `<div class="badge-alerta">⚠ El monto guardado (S/ ${totalGuardado.toFixed(2)}) no coincide con lo esperado (S/ ${totalEsperado.toFixed(2)}). Revisa la hoja de cálculo.</div>`;
+  }
+
+  document.getElementById("reciboContenido").innerHTML = html;
+
+  panelConfirmacion.classList.add("oculto");
+  panelRecibo.classList.remove("oculto");
+}
+
+/* Botón "Registrar otro gasto": limpia todo y vuelve al formulario en blanco */
+btnNuevoGasto.addEventListener("click", function () {
+  form.reset();
+  categoriaSelect.value = "";
+  camposDinamicos.innerHTML = "";
+  bloqueComunes.classList.add("oculto");
+  previewFoto.style.display = "none";
+  fotoComprimida = null;
+  payloadPendiente = null;
+  mensaje.className = "mensaje";
+  panelRecibo.classList.add("oculto");
+  form.classList.remove("oculto");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 </script>
 </body>
