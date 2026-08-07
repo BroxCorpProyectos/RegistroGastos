@@ -1,98 +1,782 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Registro de Gastos</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    label { display: block; margin-top: 10px; }
-    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
-    button { margin-top: 15px; padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
-    button:hover { background: #45a049; }
-    #materialSection { display: none; margin-top: 15px; padding: 10px; border: 1px solid #ccc; }
-    .material-item { margin-top: 10px; padding: 10px; border: 1px dashed #aaa; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Gastos de Campo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul-oscuro:#16273f;
+    --azul:#1f3a5f;
+    --ambar:#f2a93b;
+    --ambar-oscuro:#d98f20;
+    --verde:#2e7d32;
+    --rojo:#c0392b;
+    --fondo:#f4f6f9;
+    --tarjeta:#ffffff;
+    --texto:#1f2937;
+    --texto-suave:#5b6472;
+    --borde:#dbe1e8;
+    --radio:12px;
+    --sombra:0 2px 10px rgba(22,39,63,0.07);
+    --sombra-fuerte:0 8px 24px rgba(22,39,63,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',Arial,sans-serif;
+    background:var(--fondo);
+    color:var(--texto);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg,var(--azul-oscuro),var(--azul));
+    color:#fff;
+    padding:28px 20px 60px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    right:-40px;
+    top:-40px;
+    width:180px;
+    height:180px;
+    background:var(--ambar);
+    opacity:0.15;
+    border-radius:50%;
+  }
+  header h1{
+    font-family:'Poppins',sans-serif;
+    font-size:1.5rem;
+    margin:0 0 4px;
+    position:relative;
+    z-index:1;
+  }
+  header p{
+    margin:0;
+    font-size:0.92rem;
+    color:#cdd8e6;
+    position:relative;
+    z-index:1;
+  }
+  .contenedor{
+    max-width:640px;
+    margin:-40px auto 0;
+    padding:0 16px;
+    position:relative;
+    z-index:2;
+  }
+  .tarjeta{
+    background:var(--tarjeta);
+    border-radius:var(--radio);
+    box-shadow:var(--sombra-fuerte);
+    padding:22px 20px;
+    margin-bottom:18px;
+  }
+  .paso-etiqueta{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ambar-oscuro);
+    background:#fff4e2;
+    padding:4px 10px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  h2.titulo-seccion{
+    font-family:'Poppins',sans-serif;
+    font-size:1rem;
+    margin:0 0 14px;
+    color:var(--azul-oscuro);
+  }
+  label{
+    display:block;
+    font-size:0.86rem;
+    font-weight:600;
+    margin-top:14px;
+    margin-bottom:6px;
+    color:var(--texto);
+  }
+  label.opcional::after{
+    content:" (opcional)";
+    font-weight:400;
+    color:var(--texto-suave);
+  }
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="file"],
+  select,
+  textarea{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--borde);
+    border-radius:8px;
+    font-size:0.95rem;
+    font-family:inherit;
+    color:var(--texto);
+    background:#fbfcfd;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;
+    border-color:var(--azul);
+    box-shadow:0 0 0 3px rgba(31,58,95,0.14);
+    background:#fff;
+  }
+  textarea{min-height:78px;resize:vertical;}
+  .fila-doble{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .fila-triple{
+    display:grid;
+    grid-template-columns:1.4fr 0.8fr 0.9fr auto;
+    gap:8px;
+    align-items:end;
+  }
+  @media (max-width:480px){
+    .fila-triple{grid-template-columns:1fr 1fr;}
+    .fila-triple .col-eliminar{grid-column:span 2; justify-self:end;}
+  }
+  .checkbox-grupo{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:6px;
+  }
+  .chip{
+    position:relative;
+  }
+  .chip input{
+    position:absolute;
+    opacity:0;
+    width:100%;
+    height:100%;
+    cursor:pointer;
+    margin:0;
+  }
+  .chip span{
+    display:inline-block;
+    padding:9px 16px;
+    border:1.5px solid var(--borde);
+    border-radius:20px;
+    font-size:0.86rem;
+    font-weight:500;
+    color:var(--texto-suave);
+    background:#fbfcfd;
+    transition:all .15s;
+  }
+  .chip input:checked + span{
+    background:var(--azul);
+    border-color:var(--azul);
+    color:#fff;
+  }
+  .radio-grupo{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+  }
+  .radio-tarjeta{
+    flex:1;
+    position:relative;
+  }
+  .radio-tarjeta input{
+    position:absolute;
+    opacity:0;
+    width:100%;
+    height:100%;
+    cursor:pointer;
+    margin:0;
+  }
+  .radio-tarjeta span{
+    display:block;
+    text-align:center;
+    padding:12px 8px;
+    border:1.5px solid var(--borde);
+    border-radius:8px;
+    font-size:0.86rem;
+    font-weight:600;
+    color:var(--texto-suave);
+    background:#fbfcfd;
+  }
+  .radio-tarjeta input:checked + span{
+    border-color:var(--ambar-oscuro);
+    background:#fff4e2;
+    color:var(--ambar-oscuro);
+  }
+  .item-material{
+    padding:12px;
+    background:#f8fafc;
+    border:1.5px dashed var(--borde);
+    border-radius:10px;
+    margin-top:10px;
+  }
+  .btn-agregar{
+    margin-top:14px;
+    width:100%;
+    padding:11px;
+    background:#fff;
+    border:1.5px dashed var(--azul);
+    color:var(--azul);
+    font-weight:600;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:0.9rem;
+  }
+  .btn-agregar:hover{background:#eef2f7;}
+  .btn-eliminar{
+    background:#fdecea;
+    color:var(--rojo);
+    border:none;
+    border-radius:8px;
+    width:38px;
+    height:38px;
+    font-size:1.1rem;
+    cursor:pointer;
+    line-height:1;
+  }
+  .resumen-total{
+    margin-top:16px;
+    padding:12px 14px;
+    background:#eef6ee;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:700;
+    color:var(--verde);
+  }
+  .resumen-total span.etiqueta{
+    font-weight:600;
+    color:#3b5a3d;
+    font-size:0.85rem;
+  }
+  .preview-foto{
+    margin-top:10px;
+    max-width:140px;
+    border-radius:8px;
+    display:none;
+    border:1.5px solid var(--borde);
+  }
+  button[type="submit"]{
+    width:100%;
+    margin-top:20px;
+    padding:15px;
+    background:var(--ambar);
+    color:var(--azul-oscuro);
+    border:none;
+    border-radius:10px;
+    font-size:1rem;
+    font-weight:700;
+    font-family:'Poppins',sans-serif;
+    cursor:pointer;
+    box-shadow:var(--sombra);
+    transition:transform .1s, background .15s;
+  }
+  button[type="submit"]:hover{background:var(--ambar-oscuro);}
+  button[type="submit"]:active{transform:scale(0.99);}
+  button[type="submit"]:disabled{
+    background:#c9ccd1;
+    color:#6b7280;
+    cursor:not-allowed;
+  }
+  .mensaje{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:8px;
+    font-size:0.9rem;
+    font-weight:600;
+    display:none;
+  }
+  .mensaje.ok{background:#eaf7ec;color:var(--verde);display:block;}
+  .mensaje.error{background:#fdecea;color:var(--rojo);display:block;}
+  .mensaje.cargando{background:#eef2f7;color:var(--azul);display:block;}
+  small.ayuda{
+    display:block;
+    color:var(--texto-suave);
+    font-size:0.78rem;
+    margin-top:4px;
+  }
+  .oculto{display:none !important;}
+</style>
 </head>
 <body>
-  <h2>Registro de Gastos</h2>
-  <form id="gastosForm">
-    <label>Proyecto:</label>
-    <select name="proyecto" required>
+
+<header>
+  <h1>📋 Registro de Gastos de Campo</h1>
+  <p>Reporta tus gastos de proyecto de forma rápida, desde cualquier lugar.</p>
+</header>
+
+<div class="contenedor">
+  <form id="formGastos" class="tarjeta" autocomplete="off">
+
+    <span class="paso-etiqueta">Datos generales</span>
+    <h2 class="titulo-seccion">¿A qué proyecto y categoría corresponde?</h2>
+
+    <label for="proyecto">Proyecto</label>
+    <select id="proyecto" name="proyecto" required>
       <option value="">Seleccione un proyecto</option>
-      <option value="Construcción">Construcción</option>
-      <option value="Oficina">Oficina</option>
-      <option value="Marketing">Marketing</option>
-      <option value="Investigación">Investigación</option>
+      <option value="Pasco">Pasco</option>
+      <option value="Tacna">Tacna</option>
+      <option value="Arequipa">Arequipa</option>
     </select>
 
-    <label>Categoría:</label>
+    <label for="categoria">Categoría de gasto</label>
     <select id="categoria" name="categoria" required>
+      <option value="">Seleccione una categoría</option>
       <option value="Alimentación">Alimentación</option>
-      <option value="Transporte">Transporte</option>
-      <option value="Servicios">Servicios</option>
-      <option value="Material">Material</option>
+      <option value="Hospedaje">Hospedaje</option>
+      <option value="Materiales">Materiales</option>
+      <option value="Pasajes">Pasajes</option>
+      <option value="Imprevistos">Imprevistos</option>
+      <option value="Otros">Otros</option>
     </select>
 
-    <div id="materialSection">
-      <h3>Materiales</h3>
-      <div id="materialList"></div>
+    <div id="camposDinamicos"></div>
+
+    <div id="bloqueComunes" class="oculto">
+      <span class="paso-etiqueta" style="margin-top:18px;">Evidencia</span>
+      <h2 class="titulo-seccion">Sustenta tu gasto</h2>
+
+      <label for="observacion" class="opcional">Observación</label>
+      <textarea id="observacion" name="observacion" placeholder="Detalles adicionales sobre este gasto..."></textarea>
+
+      <label for="foto">Foto / evidencia</label>
+      <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
+      <small class="ayuda">Puedes tomar la foto directamente con la cámara del celular.</small>
+      <img id="previewFoto" class="preview-foto" alt="Vista previa">
+
+      <button type="submit" id="btnEnviar">Registrar gasto</button>
+      <div id="mensaje" class="mensaje"></div>
+    </div>
+  </form>
+</div>
+
+<script>
+/* ========= CONFIGURACIÓN ========= */
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbz8JTOAJF6sqsPWdckQkfDhXtOxQeqML8WzQBUJWOz2MNiFShDt2IesIzlWLppogtqT/exec";
+
+const categoriaSelect = document.getElementById("categoria");
+const camposDinamicos = document.getElementById("camposDinamicos");
+const bloqueComunes = document.getElementById("bloqueComunes");
+const form = document.getElementById("formGastos");
+const mensaje = document.getElementById("mensaje");
+const btnEnviar = document.getElementById("btnEnviar");
+const inputFoto = document.getElementById("foto");
+const previewFoto = document.getElementById("previewFoto");
+
+let contadorMateriales = 0;
+
+/* ========= PLANTILLAS POR CATEGORÍA ========= */
+const plantillas = {
+  "Alimentación": () => `
+    <span class="paso-etiqueta">Alimentación</span>
+    <h2 class="titulo-seccion">¿Qué consumiste?</h2>
+    <label>Tipo de consumo</label>
+    <div class="checkbox-grupo" id="grupoComidas">
+      ${["Desayuno","Almuerzo","Cena","Merienda","Bebidas"].map(c => `
+        <label class="chip">
+          <input type="checkbox" name="comida" value="${c}">
+          <span>${c}</span>
+        </label>`).join("")}
+    </div>
+    <label for="montoAlimentacion">Precio total (S/)</label>
+    <input type="number" id="montoAlimentacion" min="0" step="0.01" required>
+  `,
+
+  "Hospedaje": () => `
+    <span class="paso-etiqueta">Hospedaje</span>
+    <h2 class="titulo-seccion">Detalle del alojamiento</h2>
+    <label>Duración</label>
+    <div class="radio-grupo">
+      <label class="radio-tarjeta">
+        <input type="radio" name="tipoFecha" value="dia" checked>
+        <span>Un solo día</span>
+      </label>
+      <label class="radio-tarjeta">
+        <input type="radio" name="tipoFecha" value="rango">
+        <span>Rango de fechas</span>
+      </label>
     </div>
 
-    <label>Monto:</label>
-    <input type="number" name="monto" required>
+    <div id="fechaUnicaWrap">
+      <label for="fechaUnica">Fecha</label>
+      <input type="date" id="fechaUnica">
+    </div>
+    <div id="fechaRangoWrap" class="oculto">
+      <div class="fila-doble">
+        <div>
+          <label for="fechaInicio">Fecha de inicio</label>
+          <input type="date" id="fechaInicio">
+        </div>
+        <div>
+          <label for="fechaFin">Fecha de fin</label>
+          <input type="date" id="fechaFin">
+        </div>
+      </div>
+    </div>
 
-    <label>Observación:</label>
-    <textarea name="observacion"></textarea>
+    <div class="fila-doble">
+      <div>
+        <label for="habitaciones">Cantidad de habitaciones</label>
+        <input type="number" id="habitaciones" min="1" step="1" required>
+      </div>
+      <div>
+        <label for="precioHabitacion">Precio por habitación (S/)</label>
+        <input type="number" id="precioHabitacion" min="0" step="0.01" required>
+      </div>
+    </div>
+    <div class="resumen-total">
+      <span class="etiqueta">Total hospedaje</span>
+      <span id="totalHospedaje">S/ 0.00</span>
+    </div>
+  `,
 
-    <label>Foto / Evidencia:</label>
-    <input type="file" name="foto">
+  "Materiales": () => `
+    <span class="paso-etiqueta">Materiales</span>
+    <h2 class="titulo-seccion">Lista de materiales comprados</h2>
+    <div id="listaMateriales"></div>
+    <button type="button" class="btn-agregar" id="btnAgregarMaterial">+ Agregar material</button>
+    <div class="resumen-total">
+      <span class="etiqueta">Total materiales</span>
+      <span id="totalMateriales">S/ 0.00</span>
+    </div>
+  `,
 
-    <button type="submit">Registrar gasto</button>
-  </form>
+  "Pasajes": () => `
+    <span class="paso-etiqueta">Pasajes</span>
+    <h2 class="titulo-seccion">Detalle del transporte</h2>
+    <div class="fila-doble">
+      <div>
+        <label for="origen">Origen</label>
+        <input type="text" id="origen" placeholder="Ej: Cerro de Pasco" required>
+      </div>
+      <div>
+        <label for="destino">Destino</label>
+        <input type="text" id="destino" placeholder="Ej: Huayllay" required>
+      </div>
+    </div>
 
-  <script>
-    const categoria = document.getElementById("categoria");
-    const materialSection = document.getElementById("materialSection");
-    const materialList = document.getElementById("materialList");
+    <label for="tipoVehiculo">Tipo de vehículo</label>
+    <select id="tipoVehiculo" required>
+      <option value="">Seleccione</option>
+      <option value="Taxi">Taxi</option>
+      <option value="Transporte público">Transporte público</option>
+      <option value="Auto propio">Auto propio</option>
+      <option value="Otro">Otro</option>
+    </select>
+    <div id="otroVehiculoWrap" class="oculto">
+      <label for="otroVehiculo">Especifique el vehículo</label>
+      <input type="text" id="otroVehiculo" placeholder="Especifique...">
+    </div>
 
-    categoria.addEventListener("change", function() {
-      if (this.value === "Material") {
-        let cantidad = prompt("¿Cuántos materiales deseas registrar?");
-        cantidad = parseInt(cantidad);
-        if (!isNaN(cantidad) && cantidad > 0) {
-          materialSection.style.display = "block";
-          materialList.innerHTML = "";
-          for (let i = 1; i <= cantidad; i++) {
-            materialList.innerHTML += `
-              <div class="material-item">
-                <label>Material ${i}:</label>
-                <input type="text" name="material_${i}">
-                <label>Cantidad:</label>
-                <input type="number" name="cantidad_${i}">
-                <label>Precio unitario:</label>
-                <input type="number" name="precioUnitario_${i}">
-              </div>
-            `;
-          }
+    <div class="fila-doble">
+      <div>
+        <label for="cantidadPasajes">Cantidad de pasajes</label>
+        <input type="number" id="cantidadPasajes" min="1" step="1" required>
+      </div>
+      <div>
+        <label for="precioPasaje">Precio unitario (S/)</label>
+        <input type="number" id="precioPasaje" min="0" step="0.01" required>
+      </div>
+    </div>
+    <div class="resumen-total">
+      <span class="etiqueta">Total pasajes</span>
+      <span id="totalPasajes">S/ 0.00</span>
+    </div>
+  `,
+
+  "Imprevistos": () => `
+    <span class="paso-etiqueta">Imprevistos</span>
+    <h2 class="titulo-seccion">¿Qué ocurrió?</h2>
+    <label for="descImprevisto">Descripción</label>
+    <textarea id="descImprevisto" placeholder="Cuenta brevemente qué pasó..." required></textarea>
+    <label for="montoImprevisto">Monto (S/)</label>
+    <input type="number" id="montoImprevisto" min="0" step="0.01" required>
+  `,
+
+  "Otros": () => `
+    <span class="paso-etiqueta">Otros</span>
+    <h2 class="titulo-seccion">Detalle del gasto</h2>
+    <label for="descOtros">Especifique el gasto</label>
+    <textarea id="descOtros" placeholder="Describe el gasto..." required></textarea>
+    <label for="montoOtros">Monto (S/)</label>
+    <input type="number" id="montoOtros" min="0" step="0.01" required>
+  `
+};
+
+/* ========= RENDER DINÁMICO ========= */
+categoriaSelect.addEventListener("change", function () {
+  const cat = this.value;
+  if (!cat) {
+    camposDinamicos.innerHTML = "";
+    bloqueComunes.classList.add("oculto");
+    return;
+  }
+  camposDinamicos.innerHTML = plantillas[cat]();
+  bloqueComunes.classList.remove("oculto");
+  inicializarCategoria(cat);
+});
+
+function inicializarCategoria(cat) {
+  if (cat === "Hospedaje") {
+    const radios = document.querySelectorAll('input[name="tipoFecha"]');
+    const fechaUnicaWrap = document.getElementById("fechaUnicaWrap");
+    const fechaRangoWrap = document.getElementById("fechaRangoWrap");
+    radios.forEach(r => r.addEventListener("change", () => {
+      const rango = document.querySelector('input[name="tipoFecha"]:checked').value === "rango";
+      fechaUnicaWrap.classList.toggle("oculto", rango);
+      fechaRangoWrap.classList.toggle("oculto", !rango);
+      calcularTotalHospedaje();
+    }));
+    ["habitaciones","precioHabitacion"].forEach(id =>
+      document.getElementById(id).addEventListener("input", calcularTotalHospedaje)
+    );
+  }
+
+  if (cat === "Materiales") {
+    contadorMateriales = 0;
+    document.getElementById("listaMateriales").innerHTML = "";
+    agregarFilaMaterial();
+    document.getElementById("btnAgregarMaterial").addEventListener("click", agregarFilaMaterial);
+  }
+
+  if (cat === "Pasajes") {
+    document.getElementById("tipoVehiculo").addEventListener("change", function () {
+      document.getElementById("otroVehiculoWrap").classList.toggle("oculto", this.value !== "Otro");
+    });
+    ["cantidadPasajes","precioPasaje"].forEach(id =>
+      document.getElementById(id).addEventListener("input", calcularTotalPasajes)
+    );
+  }
+}
+
+function calcularTotalHospedaje() {
+  const h = Number(document.getElementById("habitaciones").value) || 0;
+  const p = Number(document.getElementById("precioHabitacion").value) || 0;
+  document.getElementById("totalHospedaje").textContent = "S/ " + (h * p).toFixed(2);
+}
+
+function calcularTotalPasajes() {
+  const c = Number(document.getElementById("cantidadPasajes").value) || 0;
+  const p = Number(document.getElementById("precioPasaje").value) || 0;
+  document.getElementById("totalPasajes").textContent = "S/ " + (c * p).toFixed(2);
+}
+
+function agregarFilaMaterial() {
+  contadorMateriales++;
+  const id = contadorMateriales;
+  const div = document.createElement("div");
+  div.className = "item-material";
+  div.dataset.id = id;
+  div.innerHTML = `
+    <div class="fila-triple">
+      <div>
+        <label>Material</label>
+        <input type="text" class="mat-nombre" placeholder="Ej: Cemento" required>
+      </div>
+      <div>
+        <label>Cantidad</label>
+        <input type="number" class="mat-cantidad" min="0" step="0.01" required>
+      </div>
+      <div>
+        <label>Precio unit. (S/)</label>
+        <input type="number" class="mat-precio" min="0" step="0.01" required>
+      </div>
+      <div class="col-eliminar">
+        <button type="button" class="btn-eliminar" title="Eliminar">✕</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("listaMateriales").appendChild(div);
+
+  div.querySelectorAll(".mat-cantidad, .mat-precio").forEach(inp =>
+    inp.addEventListener("input", calcularTotalMateriales)
+  );
+  div.querySelector(".btn-eliminar").addEventListener("click", () => {
+    div.remove();
+    calcularTotalMateriales();
+  });
+}
+
+function calcularTotalMateriales() {
+  let total = 0;
+  document.querySelectorAll("#listaMateriales .item-material").forEach(div => {
+    const c = Number(div.querySelector(".mat-cantidad").value) || 0;
+    const p = Number(div.querySelector(".mat-precio").value) || 0;
+    total += c * p;
+  });
+  document.getElementById("totalMateriales").textContent = "S/ " + total.toFixed(2);
+}
+
+/* ========= VISTA PREVIA Y COMPRESIÓN DE FOTO ========= */
+let fotoComprimida = null; // {base64, nombre, tipo}
+
+inputFoto.addEventListener("change", function () {
+  const archivo = this.files[0];
+  if (!archivo) { fotoComprimida = null; previewFoto.style.display = "none"; return; }
+  comprimirImagen(archivo, 1600, 0.72).then(resultado => {
+    fotoComprimida = resultado;
+    previewFoto.src = resultado.base64;
+    previewFoto.style.display = "block";
+  }).catch(() => { fotoComprimida = null; });
+});
+
+function comprimirImagen(archivo, maxDimension, calidad) {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) { height = Math.round(height * (maxDimension / width)); width = maxDimension; }
+          else { width = Math.round(width * (maxDimension / height)); height = maxDimension; }
         }
-      } else {
-        materialSection.style.display = "none";
-        materialList.innerHTML = "";
-      }
-    });
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL("image/jpeg", calidad);
+        resolve({ base64, nombre: archivo.name.replace(/\.[^.]+$/, "") + ".jpg", tipo: "image/jpeg" });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    lector.onerror = reject;
+    lector.readAsDataURL(archivo);
+  });
+}
 
-    // Enviar datos al Google Apps Script
-    document.getElementById("gastosForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      fetch("https://script.google.com/macros/s/AKfycbz8JTOAJF6sqsPWdckQkfDhXtOxQeqML8WzQBUJWOz2MNiFShDt2IesIzlWLppogtqT/exec", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.text())
-      .then(data => alert("Registro enviado correctamente"))
-      .catch(error => alert("Error al enviar: " + error));
-    });
-  </script>
+/* ========= ARMADO DEL PAYLOAD Y ENVÍO ========= */
+function construirDetalle(cat) {
+  switch (cat) {
+    case "Alimentación": {
+      const comidas = Array.from(document.querySelectorAll('input[name="comida"]:checked')).map(c => c.value);
+      if (comidas.length === 0) throw new Error("Selecciona al menos un tipo de consumo.");
+      return { comidas, monto: document.getElementById("montoAlimentacion").value };
+    }
+    case "Hospedaje": {
+      const tipoFecha = document.querySelector('input[name="tipoFecha"]:checked').value;
+      let fechaInicio, fechaFin;
+      if (tipoFecha === "dia") {
+        fechaInicio = fechaFin = document.getElementById("fechaUnica").value;
+      } else {
+        fechaInicio = document.getElementById("fechaInicio").value;
+        fechaFin = document.getElementById("fechaFin").value;
+      }
+      return {
+        tipoFecha, fechaInicio, fechaFin,
+        habitaciones: document.getElementById("habitaciones").value,
+        precioHabitacion: document.getElementById("precioHabitacion").value
+      };
+    }
+    case "Materiales": {
+      const items = Array.from(document.querySelectorAll("#listaMateriales .item-material")).map(div => ({
+        nombre: div.querySelector(".mat-nombre").value,
+        cantidad: div.querySelector(".mat-cantidad").value,
+        precio: div.querySelector(".mat-precio").value
+      }));
+      if (items.length === 0) throw new Error("Agrega al menos un material.");
+      return { items };
+    }
+    case "Pasajes": {
+      let tipoVehiculo = document.getElementById("tipoVehiculo").value;
+      if (tipoVehiculo === "Otro") {
+        const otro = document.getElementById("otroVehiculo").value;
+        if (otro) tipoVehiculo = otro;
+      }
+      return {
+        origen: document.getElementById("origen").value,
+        destino: document.getElementById("destino").value,
+        tipoVehiculo,
+        cantidadPasajes: document.getElementById("cantidadPasajes").value,
+        precioUnitario: document.getElementById("precioPasaje").value
+      };
+    }
+    case "Imprevistos":
+      return {
+        descripcion: document.getElementById("descImprevisto").value,
+        monto: document.getElementById("montoImprevisto").value
+      };
+    case "Otros":
+      return {
+        descripcion: document.getElementById("descOtros").value,
+        monto: document.getElementById("montoOtros").value
+      };
+  }
+}
+
+function mostrarMensaje(texto, tipo) {
+  mensaje.textContent = texto;
+  mensaje.className = "mensaje " + tipo;
+}
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const proyecto = document.getElementById("proyecto").value;
+  const categoria = categoriaSelect.value;
+
+  if (!proyecto || !categoria) {
+    mostrarMensaje("Selecciona proyecto y categoría.", "error");
+    return;
+  }
+
+  let detalle;
+  try {
+    detalle = construirDetalle(categoria);
+  } catch (err) {
+    mostrarMensaje(err.message, "error");
+    return;
+  }
+
+  const payload = {
+    proyecto,
+    categoria,
+    detalle,
+    observacion: document.getElementById("observacion").value,
+    foto: fotoComprimida ? {
+      base64: fotoComprimida.base64,
+      nombre: fotoComprimida.nombre,
+      tipo: fotoComprimida.tipo
+    } : null
+  };
+
+  btnEnviar.disabled = true;
+  mostrarMensaje("Enviando registro...", "cargando");
+
+  fetch(URL_APPS_SCRIPT, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.resultado === "OK") {
+        mostrarMensaje("✅ Gasto registrado correctamente.", "ok");
+        form.reset();
+        camposDinamicos.innerHTML = "";
+        bloqueComunes.classList.add("oculto");
+        previewFoto.style.display = "none";
+        fotoComprimida = null;
+      } else {
+        mostrarMensaje("Error al registrar: " + (data.mensaje || "desconocido"), "error");
+      }
+    })
+    .catch(err => mostrarMensaje("Error de conexión: " + err.message, "error"))
+    .finally(() => { btnEnviar.disabled = false; });
+});
+</script>
 </body>
 </html>
